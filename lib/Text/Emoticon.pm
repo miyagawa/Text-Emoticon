@@ -1,9 +1,11 @@
 package Text::Emoticon;
 
 use strict;
-our $VERSION = '0.01';
+our $VERSION = '0.02';
 
 use UNIVERSAL::require;
+
+my %map;
 
 sub new {
     my $class  = shift;
@@ -13,8 +15,50 @@ sub new {
     my $subclass = "Text::Emoticon::$driver";
        $subclass->require or die $@;
 
-    $subclass->new(%$args);
+    bless { %{$subclass->default_config}, %$args }, $subclass;
 }
+
+sub register_subclass {
+    my $class = shift;
+    my($map)  = @_;
+    my $subclass = caller;
+    $map{$subclass} = $map;
+}
+
+sub map { $map{ref($_[0])} }
+
+sub pattern {
+    my $self = shift;
+    $self->{re} ||= "(" . join("|", map quotemeta($_), keys %{$self->map}) . ")";
+    $self->{re};
+}
+
+sub filter_one {
+    my $self = shift;
+    my($text) = @_;
+    $self->do_filter($self->map->{$text});
+}
+
+sub filter {
+    my($self, $text) = @_;
+    return unless defined $text;
+    my $re = $self->pattern;
+    if ($self->{strict}) {
+      $text =~ s{(?<!\w)$re(?!\w)}{$self->do_filter($self->map->{$1})}eg;
+    } else {
+      $text =~ s{$re}{$self->do_filter($self->map->{$1})}eg;
+    }
+    return $text;
+}
+
+sub do_filter {
+    my($self, $icon) = @_;
+    my $class = $self->{class} ? qq( class="$self->{class}") : "";
+    my $xhtml = $self->{xhtml} ? qq( /) : "";
+
+    return qq(<img src="$self->{imgbase}/$icon"$class$xhtml>); 
+}
+
 
 1;
 __END__

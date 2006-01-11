@@ -5,9 +5,13 @@ use Text::Emoticon;
 
 for my $driver (qw( MSN Yahoo )) {
     eval {
-        my $msn = Text::Emoticon->new($driver);
-        my $f = $msn->filter('Hi :)');
+        my $emo = Text::Emoticon->new($driver);
+        my $f = $emo->filter('Hi :)');
         like $f, qr/img/;
     };
+    if ($@) {
+        diag( "new version of $driver module needed." );
+        pass;
+    }
 }
 
