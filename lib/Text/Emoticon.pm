@@ -1,7 +1,7 @@
 package Text::Emoticon;
 
 use strict;
-our $VERSION = '0.02';
+our $VERSION = '0.03';
 
 use UNIVERSAL::require;
 
@@ -9,13 +9,17 @@ my %map;
 
 sub new {
     my $class  = shift;
-    my $driver = shift;
-    my $args   = @_ == 1 ? $_[0] : {@_};
+    if ($class eq __PACKAGE__) {
+        my $driver = shift;
+        my $args   = @_ == 1 ? $_[0] : {@_};
 
-    my $subclass = "Text::Emoticon::$driver";
-       $subclass->require or die $@;
-
-    bless { %{$subclass->default_config}, %$args }, $subclass;
+        my $subclass = "Text::Emoticon::$driver";
+        $subclass->require or die $@;
+        return bless { %{$subclass->default_config}, %$args }, $subclass;
+    } else {
+        my $args   = @_ == 1 ? $_[0] : {@_};
+        return bless { %{$class->default_config}, %$args }, $class;
+    }
 }
 
 sub register_subclass {
