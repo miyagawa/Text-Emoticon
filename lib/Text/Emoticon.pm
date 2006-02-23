@@ -1,7 +1,7 @@
 package Text::Emoticon;
 
 use strict;
-our $VERSION = '0.03';
+our $VERSION = '0.04';
 
 use UNIVERSAL::require;
 
@@ -33,7 +33,7 @@ sub map { $map{ref($_[0])} }
 
 sub pattern {
     my $self = shift;
-    $self->{re} ||= "(" . join("|", map quotemeta($_), keys %{$self->map}) . ")";
+    $self->{re} ||= "(" . join("|", map quotemeta($_), sort { length($b) <=> length($a) } keys %{$self->map}) . ")";
     $self->{re};
 }
 
